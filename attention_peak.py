@@ -26,7 +26,7 @@ base_mapping = {
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--cell_name",
+        "--cell_line",
         type=str,
         default="GM12878",
         help="The cell type of dataset."
@@ -96,7 +96,7 @@ def get_attention_weights(model, data, X):
     return weights
 
 def save_attention_peak_information(args):
-    data_pos = pd.read_csv(os.path.join('./data', 'data_set', args.cell_name, 'pos_data_sequence_v3.txt'), sep='\t')
+    data_pos = pd.read_csv(os.path.join('./data', 'data_set', args.cell_line, 'pos_data_sequence_v3.txt'), sep='\t')
     print("pos_data_sequence shape:", data_pos.shape)
     data_pos_test = data_pos[int(len(data_pos) * 0.9):]
     print(data_pos_test.shape)
@@ -121,7 +121,7 @@ def save_attention_peak_information(args):
                   metrics=['accuracy'])
 
     print('Loading Weights...')
-    model.load_weights(os.path.join('./weights', args.cell_name, args.cell_name + '_' + args.md + '.h5df'))
+    model.load_weights(os.path.join('./weights', args.cell_line, args.cell_line + '_' + args.md + '.h5df'))
 
     chrr = ['chr' + str(i) for i in range(1, 23)]
     chrr.append('chrX')

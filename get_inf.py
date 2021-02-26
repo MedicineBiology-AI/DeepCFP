@@ -10,7 +10,7 @@ from keras.utils import to_categorical
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--cell_name",
+        "--cell_line",
         type=str,
         default="GM12878",
         help="The cell type of dataset."
@@ -38,15 +38,7 @@ def parse_args():
 def get_inf(args):
     print("Loading data...")
 
-    #with h5py.File(os.path.join('./data','cross_validation',args.cell_name,'data_val.h5'), 'r') as data_test:
-    #    X_test=np.array(data_test['X_val'])
-    #    y_test=np.array(data_test['y_val'])
-    #    fri=np.array(data_test['fri_val'])
-    #    gnm=np.array(data_test['gnm_val'])
-    #    std_fri = np.array(data_test['std_fri_val'])
-    #    std_gnm = np.array(data_test['std_gnm_val'])
-
-    with h5py.File(os.path.join('./data', 'final_set', args.cell_name, 'data_test.h5'), 'r') as data_test:
+    with h5py.File(os.path.join('./data', 'final_set', args.cell_line, 'data_test.h5'), 'r') as data_test:
         X_test = np.array(data_test['X_test'])
         y_test = np.array(data_test['y_test'])
         fri = np.array(data_test['fri_test'])
@@ -54,10 +46,7 @@ def get_inf(args):
         std_fri = np.array(data_test['std_fri_test'])
         std_gnm = np.array(data_test['std_gnm_test'])
     
-    
-    #chr_inf=pd.read_table(os.path.join('./data','cross_validation',cell_name,'chr_val.txt'))
-    #chr_test=chr_inf['chr_val']
-    chr_inf = pd.read_table(os.path.join('./data', 'final_set', args.cell_name, 'chr_test.txt'))
+    chr_inf = pd.read_table(os.path.join('./data', 'final_set', args.cell_line, 'chr_test.txt'))
     chr_test = chr_inf['chr_test']
         
     print("X_test shape:",X_test.shape)
@@ -79,7 +68,7 @@ def get_inf(args):
     data['std(gnm)'] = std_gnm
     data['prediction'] = pred
     
-    save_path=os.path.join('./compare', args.cell_name, args.cell_name+'_'+args.model_name+'_datacmp.txt')
+    save_path=os.path.join('./compare', args.cell_line, args.cell_line+'_'+args.model_name+'_datacmp.txt')
     
     data.to_csv(save_path,index=False,header=True,sep='\t')
     

@@ -10,7 +10,7 @@ from sklearn.metrics import roc_curve, precision_recall_curve, auc
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--cell_name",
+        "--cell_line",
         type=str,
         default="GM12878",
         help="The cell type of dataset."
@@ -44,11 +44,11 @@ def standardization(data):
     std = np.std(data, axis=0)
     return (data - mean) / std
 
-def AUC_on_test_set(curve, cell_name, model_name):
+def AUC_on_test_set(curve, cell_line, model_name):
     AUROC = []
     AUPR = []
     
-    data = pd.read_table(os.path.join('./compare', cell_name, cell_name+'_'+model_name+'_datacmp.txt'))
+    data = pd.read_table(os.path.join('./compare', cell_line, cell_line+'_'+model_name+'_datacmp.txt'))
     
     labels = np.array(data['labels'])
     fri = np.array(data['std(fri)'])
@@ -87,8 +87,8 @@ def AUC_on_test_set(curve, cell_name, model_name):
 
     plt.show()
 
-def AUC_on_each_chromosome(curve, cell_name, model_name):
-    data = pd.read_table(os.path.join('./compare',cell_name, cell_name+'_'+model_name+'_datacmp.txt'))
+def AUC_on_each_chromosome(curve, cell_line, model_name):
+    data = pd.read_table(os.path.join('./compare',cell_line, cell_line+'_'+model_name+'_datacmp.txt'))
 
     chrr = ['chr' + str(i) for i in range(1, 23)]
     chrr.append('chrX')
@@ -134,5 +134,5 @@ def AUC_on_each_chromosome(curve, cell_name, model_name):
 
 if __name__=='__main__':
     args = parse_args()
-    AUC_on_test_set(args.curve, args.cell_name, args.model_name) #'ROC' or 'P-R'
-    AUC_on_each_chromosome(args.curve, args.cell_name, args.model_name) #'ROC' or 'P-R'
+    AUC_on_test_set(args.curve, args.cell_line, args.model_name) #'ROC' or 'P-R'
+    AUC_on_each_chromosome(args.curve, args.cell_line, args.model_name) #'ROC' or 'P-R'

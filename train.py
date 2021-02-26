@@ -20,7 +20,7 @@ import build_model as bm
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--cell_name",
+        "--cell_line",
         type=str,
         default="GM12878",
         help="The cell type of dataset."
@@ -57,7 +57,6 @@ def main(args):
 
     print("Loading data...")
     X_train, y_train, X_val, y_val, X_test, y_test = ld.load_final_data(args)
-    # X_train,y_train,X_val,y_val=ld.load_cross_validation_data(args)
 
     print("X_train shape:", X_train.shape)
     print("y_train shape:", y_train.shape)
@@ -96,14 +95,14 @@ def main(args):
 
     result = get_result()
 
-    checkpoint_path = os.path.join('./weights', args.cell_name, args.cell_name + '_' + args.model_name + '.h5df')
+    checkpoint_path = os.path.join('./weights', args.cell_line, args.cell_line + '_' + args.model_name + '.h5df')
     checkpoint = ModelCheckpoint(filepath=checkpoint_path,
                                  save_best_only=True,
                                  save_weights_only=True,
                                  monitor='val_acc',
                                  mode=max)
 
-    tb = TensorBoard(log_dir=os.path.join('./logs', args.cell_name, args.cell_name + '_' + args.model_name))
+    tb = TensorBoard(log_dir=os.path.join('./logs', args.cell_line, args.cell_line + '_' + args.model_name))
 
     callbacks = [result, checkpoint, tb]
 

@@ -19,7 +19,7 @@ from keras.utils import to_categorical
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--cell_name",
+        "--cell_line",
         type=str,
         default="GM12878",
         help="The cell type of dataset."
@@ -66,7 +66,7 @@ def predict(X,y,args):
                   metrics=['accuracy'])
     
     print('Loading Weights...')
-    model.load_weights(os.path.join('./weights', args.cell_name, args.cell_name+'_'+args.model_name+'.h5df'))
+    model.load_weights(os.path.join('./weights', args.cell_line, args.cell_line+'_'+args.model_name+'.h5df'))
     
     print('Evaluating...')
     score=model.evaluate(X,y,batch_size=args.batch_size)
@@ -84,9 +84,9 @@ if __name__ == "__main__":
     print("Loading data...")
     _,_,_,_,X_test,y_test=ld.load_final_data(args)
         
-    #print("X_train shape:",X_train.shape)
+    print("X_train shape:",X_train.shape)
     print("X_test shape:",X_test.shape)
-    #print("y_train shape:",y_train.shape)
+    print("y_train shape:",y_train.shape)
     print("y_test shape:",y_test.shape)
     print(predict(X_test,y_test,args))
     

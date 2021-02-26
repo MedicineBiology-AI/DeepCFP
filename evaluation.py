@@ -48,7 +48,7 @@ def AUC_on_test_set(curve, cell_name, model_name):
     AUROC = []
     AUPR = []
     
-    data = pd.read_table(os.path.join('./compare', cell_name+'_'+model_name+'_datacmp.txt'))
+    data = pd.read_table(os.path.join('./compare', cell_name, cell_name+'_'+model_name+'_datacmp.txt'))
     
     labels = np.array(data['labels'])
     fri = np.array(data['std(fri)'])

@@ -26,10 +26,16 @@ base_mapping = {
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        "--path",
+        type=str,
+        default="./",
+        help="The path of the project."
+    )
+    parser.add_argument(
         "--cell_line",
         type=str,
         default="GM12878",
-        help="The cell type of dataset."
+        help="The cell line of dataset."
     )
     parser.add_argument(
         "--model_name",
@@ -96,7 +102,7 @@ def get_attention_weights(model, data, X):
     return weights
 
 def save_attention_peak_information(args):
-    data_pos = pd.read_csv(os.path.join('./data', 'data_set', args.cell_line, 'pos_data_sequence_v3.txt'), sep='\t')
+    data_pos = pd.read_csv(os.path.join(args.path, 'data', 'data_set', args.cell_line, 'pos_data_sequence_v3.txt'), sep='\t')
     print("pos_data_sequence shape:", data_pos.shape)
     data_pos_test = data_pos[int(len(data_pos) * 0.9):]
     print(data_pos_test.shape)
@@ -121,14 +127,14 @@ def save_attention_peak_information(args):
                   metrics=['accuracy'])
 
     print('Loading Weights...')
-    model.load_weights(os.path.join('./weights', args.cell_line, args.cell_line + '_' + args.md + '.h5df'))
+    model.load_weights(os.path.join(args.path, 'weights', args.cell_line, args.cell_line + '_' + args.md + '.h5df'))
 
     chrr = ['chr' + str(i) for i in range(1, 23)]
     chrr.append('chrX')
 
     for i in chrr:
         data = data_pos_test[data_pos_test['chr'].isin([i])]
-        sub_peak = get_peak(os.path.join('./attention_peak', 'dict_peak_' + str(sub_length) + '.txt'), data)
+        sub_peak = get_peak(os.path.join(args.path, 'attention_peak', 'dict_peak_' + str(sub_length) + '.txt'), data)
 
         seqs_pos = np.array(data['seq'])
         labels_pos = np.array(data['labels'])
@@ -149,7 +155,7 @@ def save_attention_peak_information(args):
         before_attention = get_data_before_attention(model, X_pos)
         weights = get_attention_weights(model, before_attention, X_pos)
 
-        with h5py.File(os.path.join('./attention_peak', 'chr_data_' + str(sub_length), i + '_data.h5'), 'w') as f:
+        with h5py.File(os.path.join(args.path, 'attention_peak', 'chr_data_' + str(sub_length), i + '_data.h5'), 'w') as f:
             f['sub_peak'] = sub_peak
             f['weights'] = weights
 
@@ -168,7 +174,7 @@ def attention_peak():
     for i in chrr:
         try:
             with h5py.File(
-                    os.path.join('./attention_peak', 'chr_data_' + str(sub_length),
+                    os.path.join(args.path, 'attention_peak', 'chr_data_' + str(sub_length),
                                  i + '_data.h5'), 'r') as f:
                 weights = np.array(f['weights'])
                 peak = np.array(f['sub_peak'])

@@ -17,16 +17,22 @@ base_mapping = {
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        "--path",
+        type=str,
+        default="./",
+        help="The path of the project."
+    )
+    parser.add_argument(
         "--cell_line",
         type=str,
         default="GM12878",
-        help="The cell type of dataset."
+        help="The cell line of dataset."
     )
     return parser.parse_args()
 
 def data_process(args):
     # negative data
-    data_neg = pd.read_csv(os.path.join('./data/data_set',args.cell_line,'neg_data_sequence.txt'), sep='\t')
+    data_neg = pd.read_csv(os.path.join(args.path, 'data/data_set', args.cell_line, 'neg_data_sequence.txt'), sep='\t')
     # data_neg=shuffle(data_neg)
 
     labels_neg = np.array(data_neg['labels'])
@@ -48,7 +54,7 @@ def data_process(args):
     print(y_neg.shape)
 
     # positive data
-    data_pos = pd.read_csv(os.path.join('./data/data_set',args.cell_line,'pos_data_sequence.txt'), sep='\t')
+    data_pos = pd.read_csv(os.path.join(args.path, 'data/data_set', args.cell_line, 'pos_data_sequence.txt'), sep='\t')
     # data_pos=shuffle(data_pos)
 
     labels_pos = np.array(data_pos['labels'])
@@ -128,7 +134,7 @@ def save_final_data(args):
     print("chr_test shape:",chr_test.shape)
 
     print("Data saving...")
-    with h5py.File(os.path.join('./data/final_set',args.cell_line,'data_train.h5'), 'w') as data_train:
+    with h5py.File(os.path.join(args.path, 'data/final_set', args.cell_line, 'data_train.h5'), 'w') as data_train:
         data_train['X_train']=np.array(X_train).astype(np.int8)
         data_train['y_train']=np.array(y_train).astype(np.int8)
         data_train['fri_train']=np.array(fri_train).astype(np.float32)
@@ -136,7 +142,7 @@ def save_final_data(args):
         data_train['std_fri_train']=np.array(std_fri_train).astype(np.float32)
         data_train['std_gnm_train']=np.array(std_gnm_train).astype(np.float32)
 
-    with h5py.File(os.path.join('./data/final_set',args.cell_line,'data_val.h5'), 'w') as data_val:
+    with h5py.File(os.path.join(args.path, 'data/final_set', args.cell_line, 'data_val.h5'), 'w') as data_val:
         data_val['X_val']=np.array(X_val).astype(np.int8)
         data_val['y_val']=np.array(y_val).astype(np.int8)
         data_val['fri_val']=np.array(fri_val).astype(np.float32)
@@ -151,18 +157,22 @@ def save_final_data(args):
         data_test['gnm_test']=np.array(gnm_test).astype(np.float32)
         data_test['std_fri_test']=np.array(std_fri_test).astype(np.float32)
         data_test['std_gnm_test']=np.array(std_gnm_test).astype(np.float32)
-
+    
+    final_set_path=os.path.join(args.path, 'data/final_set', args.cell_line)
+    if not os.path.exists(final_set_path):
+        os.makedirs(final_set_path)
+    
     chr_train_inf=pd.DataFrame()
     chr_train_inf['chr_train']=chr_train
-    chr_train_inf.to_csv(os.path.join('./data/final_set',args.cell_line,'chr_train.txt'),index=False,header=True,sep='\t')
+    chr_train_inf.to_csv(os.path.join(final_set_path, 'chr_train.txt'),index=False,header=True,sep='\t')
 
     chr_val_inf=pd.DataFrame()
     chr_val_inf['chr_val']=chr_val
-    chr_val_inf.to_csv(os.path.join('./data/final_set',args.cell_line,'chr_val.txt'),index=False,header=True,sep='\t')
+    chr_val_inf.to_csv(os.path.join(final_set_path, 'chr_val.txt'),index=False,header=True,sep='\t')
 
     chr_test_inf=pd.DataFrame()
     chr_test_inf['chr_test']=chr_test
-    chr_test_inf.to_csv(os.path.join('./data/final_set',args.cell_line,'chr_test.txt'),index=False,header=True,sep='\t')
+    chr_test_inf.to_csv(os.path.join(final_set_path, 'chr_test.txt'),index=False,header=True,sep='\t')
 
     print("Finish")
 

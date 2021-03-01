@@ -19,10 +19,16 @@ from keras.utils import to_categorical
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        "--path",
+        type=str,
+        default="./",
+        help="The path of the project."
+    )
+    parser.add_argument(
         "--cell_line",
         type=str,
         default="GM12878",
-        help="The cell type of dataset."
+        help="The cell line of dataset."
     )
     parser.add_argument(
         "--model_name",
@@ -66,7 +72,7 @@ def predict(X,y,args):
                   metrics=['accuracy'])
     
     print('Loading Weights...')
-    model.load_weights(os.path.join('./weights', args.cell_line, args.cell_line+'_'+args.model_name+'.h5df'))
+    model.load_weights(os.path.join(args.path, 'weights', args.cell_line, args.cell_line+'_'+args.model_name+'.h5df'))
     
     print('Evaluating...')
     score=model.evaluate(X,y,batch_size=args.batch_size)

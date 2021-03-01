@@ -10,10 +10,16 @@ from sklearn.metrics import roc_curve, precision_recall_curve, auc
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        "--path",
+        type=str,
+        default="./",
+        help="The path of the project."
+    )
+    parser.add_argument(
         "--cell_line",
         type=str,
         default="GM12878",
-        help="The cell type of dataset."
+        help="The cell line of dataset."
     )
     parser.add_argument(
         "--model_name",
@@ -32,37 +38,77 @@ def parse_args():
 def auroc(labels, data):
     FPR, TPR, thresholds = roc_curve(labels, data)
     roc_auc = auc(FPR, TPR)
-    return roc_auc
+    return FPR, TPR, roc_auc
 
 def aupr(labels, data):
     precision, recall, thresholds = precision_recall_curve(labels, data)
     pr_auc = auc(recall, precision)
-    return pr_auc
+    return precision, recall, pr_auc
 
 def standardization(data):
     mean = np.mean(data, axis=0)
     std = np.std(data, axis=0)
     return (data - mean) / std
 
-def AUC_on_test_set(curve, cell_line, model_name):
+def Curves(path,curve, cell_name, model_name):
+    data = pd.read_table(os.path.join(path, 'compare', cell_name, cell_name+'_'+model_name+'_datacmp.txt'))
+    
+    labels = np.array(data['labels'])
+    fri = np.array(data['std(fri)'])
+    gnm = np.array(data['GNM'])
+    prediction = np.array(data['prediction'])
+
+    model_name = ['FRI','GNM','DeepCFP']
+    color = ['#1E90FF', '#DAA520', '#FF4500']
+    plt.figure(figsize=(7,6)) 
+    plt.grid(linestyle=':')
+    for target in model_name:
+        if(target=='FRI'):
+            c=color[0]
+            t=fri
+        elif(target=='GNM'):
+            c=color[1]
+            t=gnm
+        elif(target=='DeepCFP'):
+            c=color[2]
+            t=prediction
+        if(curve=='ROC'):
+            FPR, TPR, roc_auc=auroc(labels, standardization(t))
+            plt.plot(FPR, TPR,c,label='{0:s} (AUROC = {1:.2f})'.format(target,roc_auc),linewidth=1.5) 
+        elif(curve=='P-R'):
+            precision, recall, pr_auc=aupr(labels, standardization(t))
+            plt.plot(recall, precision,c,label='{0:s} (AUPR = {1:.2f})'.format(target,pr_auc),linewidth=1.5) 
+    if(curve=='ROC'):
+        plt.plot([0, 1], [0, 1], '--', color=(0.6, 0.6, 0.6), label='Reference') 
+    elif(curve=='P-R'):
+        plt.plot([0, 1], [1, 0], '--', color=(0.6, 0.6, 0.6), label='Reference') 
+    plt.xlim([-0.02, 1.02])    
+    plt.ylim([-0.02, 1.02])
+    plt.xlabel('Recall',fontsize=15)
+    plt.ylabel('Precision',fontsize=15)   
+    plt.title('P-R curves',fontsize=15)
+    plt.legend(loc="lower right",fontsize=11.5, framealpha=1)
+    plt.show()
+
+def AUC_on_test_set(path, curve, cell_line, model_name):
     AUROC = []
     AUPR = []
     
-    data = pd.read_table(os.path.join('./compare', cell_line, cell_line+'_'+model_name+'_datacmp.txt'))
+    data = pd.read_table(os.path.join(path, 'compare', cell_line, cell_line+'_'+model_name+'_datacmp.txt'))
     
     labels = np.array(data['labels'])
     fri = np.array(data['std(fri)'])
     gnm = np.array(data['GNM'])
     
-    AUROC.append(round(auroc(labels, standardization(fri)), 4))
-    AUPR.append(round(aupr(labels, standardization(fri)), 4))
+    AUROC.append(round(auroc(labels, standardization(fri))[2], 4))
+    AUPR.append(round(aupr(labels, standardization(fri))[2], 4))
     
-    AUROC.append(round(auroc(labels, standardization(gnm)), 4))
-    AUPR.append(round(aupr(labels, standardization(gnm)), 4))
+    AUROC.append(round(auroc(labels, standardization(gnm))[2], 4))
+    AUPR.append(round(aupr(labels, standardization(gnm))[2], 4))
 
     prediction = np.array(data['prediction'])
-    AUROC.append(round(auroc(labels, standardization(prediction)), 4))
-    AUPR.append(round(aupr(labels, standardization(prediction)), 4))
+    AUROC.append(round(auroc(labels, standardization(prediction))[2], 4))
+    AUPR.append(round(aupr(labels, standardization(prediction))[2], 4))
 
     model_name = ['FRI','GNM','DeepCFP']
     plt.figure(figsize=(6,5))
@@ -71,24 +117,24 @@ def AUC_on_test_set(curve, cell_line, model_name):
     color = ['#4473C5','#A5A5A5','#FEBF00']
     if(curve=='ROC'):
         plt.bar(np.arange(3), AUROC, color=color, width=bar_width)
-        for i in range(len(AUROC)):
-            plt.text(i, AUROC[i] + 0.01, AUROC[i], ha='center')
+        #for i in range(len(AUROC)):
+        #    plt.text(i, AUROC[i] + 0.01, AUROC[i], ha='center')
         plt.title('Compare AUROC on the test set', fontsize=15)
     elif(curve=='P-R'):
         plt.bar(np.arange(3), AUPR, color=color, width=bar_width)
-        for i in range(len(AUPR)):
-            plt.text(i, AUPR[i] + 0.01, AUPR[i], ha='center')
+        #for i in range(len(AUPR)):
+        #    plt.text(i, AUPR[i] + 0.01, AUPR[i], ha='center')
         plt.title('Compare AUPR on the test set', fontsize=15)
 
     plt.xlabel('Model', fontsize=15)
     plt.ylabel('The area under ROC curve', fontsize=15)
     plt.xticks(np.arange(3), model_name, fontsize=12, rotation=20)
-    plt.ylim([0.7, 1.05])
+    plt.ylim([0.7, 1.02])
 
     plt.show()
 
-def AUC_on_each_chromosome(curve, cell_line, model_name):
-    data = pd.read_table(os.path.join('./compare',cell_line, cell_line+'_'+model_name+'_datacmp.txt'))
+def AUC_on_each_chromosome(path, curve, cell_line, model_name):
+    data = pd.read_table(os.path.join(path, 'compare', cell_line, cell_line+'_'+model_name+'_datacmp.txt'))
 
     chrr = ['chr' + str(i) for i in range(1, 23)]
     chrr.append('chrX')
@@ -105,13 +151,13 @@ def AUC_on_each_chromosome(curve, cell_line, model_name):
         prediction = np.array(d['prediction'])
         chrr1.append(i)
         if(curve=='ROC'):
-            fri_auc.append(auroc(labels, fri))
-            gnm_auc.append(auroc(labels, gnm))
-            prediction_auc.append(auroc(labels, prediction))
+            fri_auc.append(auroc(labels, fri)[2])
+            gnm_auc.append(auroc(labels, gnm)[2])
+            prediction_auc.append(auroc(labels, prediction)[2])
         elif(curve=='P-R'):
-            fri_auc.append(aupr(labels, fri))
-            gnm_auc.append(aupr(labels, gnm))
-            prediction_auc.append(aupr(labels, prediction))
+            fri_auc.append(aupr(labels, fri)[2])
+            gnm_auc.append(aupr(labels, gnm)[2])
+            prediction_auc.append(aupr(labels, prediction)[2])
 
     print(np.mean(fri_auc))
     print(np.mean(gnm_auc))
@@ -128,11 +174,12 @@ def AUC_on_each_chromosome(curve, cell_line, model_name):
     plt.xlabel('Chromosome', fontsize=15)
     plt.ylabel('The area under '+curve+' curve', fontsize=15)
     plt.xticks(np.arange(23) + 0.25, chrr, fontsize=12, rotation=20)
-    plt.ylim([0.0, 1.2])
+    plt.ylim([0.0, 1.19])
     plt.legend()
     plt.show()
 
 if __name__=='__main__':
     args = parse_args()
-    AUC_on_test_set(args.curve, args.cell_line, args.model_name) #'ROC' or 'P-R'
-    AUC_on_each_chromosome(args.curve, args.cell_line, args.model_name) #'ROC' or 'P-R'
+    Curves(args.path, args.curve, args.cell_line, args.model_name) #'ROC' or 'P-R'
+    AUC_on_test_set(args.path, args.curve, args.cell_line, args.model_name) #'ROC' or 'P-R'
+    AUC_on_each_chromosome(args.path, args.curve, args.cell_line, args.model_name) #'ROC' or 'P-R'

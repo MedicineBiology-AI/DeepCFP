@@ -20,10 +20,16 @@ import build_model as bm
 def parse_args():
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        "--path",
+        type=str,
+        default="./",
+        help="The path of the project."
+    )
+    parser.add_argument(
         "--cell_line",
         type=str,
         default="GM12878",
-        help="The cell type of dataset."
+        help="The cell line of dataset."
     )
     parser.add_argument(
         "--model_name",
@@ -95,14 +101,14 @@ def main(args):
 
     result = get_result()
 
-    checkpoint_path = os.path.join('./weights', args.cell_line, args.cell_line + '_' + args.model_name + '.h5df')
+    checkpoint_path = os.path.join(args.path, 'weights', args.cell_line, args.cell_line + '_' + args.model_name + '.h5df')
     checkpoint = ModelCheckpoint(filepath=checkpoint_path,
                                  save_best_only=True,
                                  save_weights_only=True,
                                  monitor='val_acc',
                                  mode=max)
 
-    tb = TensorBoard(log_dir=os.path.join('./logs', args.cell_line, args.cell_line + '_' + args.model_name))
+    tb = TensorBoard(log_dir=os.path.join(args.path, 'logs', args.cell_line, args.cell_line + '_' + args.model_name))
 
     callbacks = [result, checkpoint, tb]
 

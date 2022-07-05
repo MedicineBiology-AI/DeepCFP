@@ -1,4 +1,7 @@
 # Predicting chromosome flexibility from the genomic sequence based on deep learning neural networks
+
+**This repo is moved to [23AIBox](https://github.com/23AIBox/23AIBox-DeepCFP)**
+
 ## How to set up?
 1) Install:
    Python 3.6, Tensorflow 1.14.0, Keras 2.2.4, pycharm
